@@ -1,3 +1,7 @@
+#python 3.6.5
+#python program to get updates of the corona virus pandemic
+
+
 import requests
 from bs4 import BeautifulSoup
 import re,random
@@ -134,6 +138,17 @@ class Covid():
 gdata = Covid().global_data()
 cdata = Covid.country_data('algeria')
 Covid().send_mail(*receiver,gdata,cdata)
+
+#or extract all the data :
+##################################
+countries = Covid().pagination()
+for country in countries:
+    cdata = Covid.country_data(country)
+    Covid().send_mail(*receiver, gdata, cdata)
+
+###################################
+
+# if you them in one messages , change the msg parameter in send_mail() to iterate each cdata for each country (by using pagination())
 
 
 
