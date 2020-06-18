@@ -1,12 +1,11 @@
-#python 3.6.5
-#python program to get updates of the corona virus pandemic
-
-
 import requests
 from bs4 import BeautifulSoup
-import re,random
+import re
+import random
 import smtplib
-from time import ctime
+from datetime import datetime
+import matplotlib.pyplot as plt
+
 
 
 class Covid():
@@ -37,7 +36,7 @@ class Covid():
         'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)']
 
         return {
-            "User-Agent": agents[random.randint(0,len(agents)-1)]  #changing the user agent randomly each time the program runs to avoid being blocked
+            "User-Agent": agents[random.randint(0, len(agents)-1)]  #changing the user agent randomly each time the program runs to avoid being blocked
         }
 
 
@@ -54,10 +53,10 @@ class Covid():
             href = element.attrs.get('href')
             links.append(href[8:len(href)-1])
 
-        while links[i] != 'us':
+        while links[i] != 'us':                    
             i=i+1
 
-        pagination_keys = links[0:i-1]
+        pagination_keys = links[0:i-1]        #cleaning data
 
         return(pagination_keys)    #country names
 
@@ -114,41 +113,64 @@ class Covid():
 
 
 
-    def send_mail(self,RECEIVER,gdata,cdata):
-        SENDER = '*sender@gmail.com'
-        PASS = '************'
+    def graph(self, x):
+	    y1 = []
+	    y2 = []
 
-        with smtplib.SMTP('smtp.gmail.com',587) as smtp:
-            smtp.ehlo()
-            smtp.starttls()
-            smtp.ehlo()
-            smtp.login(SENDER,PASS)
+	    for word in x:
+		    cdata = Covid.country_data(word)
+		    item1 = cdata[1][14:-1]
+		    item2 = cdata[1][15:-1]
+		    integer1 = int(item1.replace(',', ''))
+		    integer2 = int(item2.replace(',', ''))
+		    y1.append(integer1)
+		    y2.append(integer2)
 
-            subject = 'Corona virus stats '+str(ctime())   #ctime() returns the last update date
-            body = str(gdata[0]) + '\n' +str(gdata[1])+'\n' +str(gdata[2])+ '\n' +str(gdata[3])+ '\n\n'\
-                   + str(cdata[0]) + '\n' +str(cdata[1])+'\n' +str(cdata[2])+ '\n' +str(cdata[3]) +'\n' +str(cdata[4][0])+ '\n' +str(cdata[5][0])
+	    x.reverse()
+	    y1.reverse()
+	    y2.reverse()
 
-            msg = 'Subject :{0} \n\n {1}'.format(subject,body)    #formatting the message
+	    width = 0.2
+	    styles = plt.style.available
 
-            smtp.sendmail(SENDER,RECEIVER,msg)
-            print('email has been sent')
+	    plt.style.use('fivethirtyeight')
+
+	    plt.barh(x, y1, linewidth=width, label='cases')
+	    plt.barh(x, y2, linewidth=width, label='deaths')
+	    plt.legend(loc='lower right')
+	    plt.ylabel('Country')
+	    plt.title('Covid 19 Cases per Country')
+	    plt.grid(True)
+	    plt.show()
+
+
+    def send_mail(self, RECEIVER, gdata, cdata):
+	    SENDER = 'sender gmail'
+	    PASS = 'password'
+
+	    with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+	        smtp.ehlo()
+	        smtp.starttls()
+	        smtp.ehlo()
+	        smtp.login(SENDER,PASS)
+
+	        subject = 'Corona virus stats '+str(ctime())   #ctime() returns the last update date
+	        body = str(gdata[0]) + '\n' +str(gdata[1])+'\n' +str(gdata[2])+ '\n' +str(gdata[3])+ '\n\n'\
+	               + str(cdata[0]) + '\n' +str(cdata[1])+'\n' +str(cdata[2])+ '\n' +str(cdata[3]) +'\n' +str(cdata[4][0])+ '\n' +str(cdata[5][0]) +'\n'+\
+	               'https://www.worldometers.info/coronavirus/'
+
+	        msg = 'Subject :{0} \n\n {1}'.format(subject,body)    #formatting the message
+
+	        smtp.sendmail(SENDER,RECEIVER,msg)
+	        print('email has been sent')
 
 
 
 gdata = Covid().global_data()
 cdata = Covid.country_data('algeria')
-Covid().send_mail(*receiver,gdata,cdata)
-
-#or extract all the data :
-##################################
+Covid().send_mail(*"receiver gmail", gdata, cdata)
 countries = Covid().pagination()
-for country in countries:
-    cdata = Covid.country_data(country)
-    Covid().send_mail(*receiver, gdata, cdata)
-
-###################################
-
-# if you them in one messages , change the msg parameter in send_mail() to iterate each cdata for each country (by using pagination())
+Covid().graph(countries[:10])
 
 
 
