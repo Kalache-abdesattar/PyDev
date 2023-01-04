@@ -1,4 +1,4 @@
-# PyDev
+# Covid-19 Data Acquisition Script
 A simple python code to extract covid-19 data to keep you updated
 
 you have to install bs4 and requests :
